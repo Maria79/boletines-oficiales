@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API specification for Gestoría Canarias — Boletines Oficiales
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: entries
+    description: Boletín entry operations
+  - name: sync
+    description: Manual sync operations
+  - name: stats
+    description: Dashboard statistics
 paths:
   /healthz:
     get:
@@ -24,6 +30,189 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /entries:
+    get:
+      operationId: listEntries
+      tags: [entries]
+      summary: List boletín entries
+      description: List entries from BOE, BOC and BOP with optional filters
+      parameters:
+        - name: source
+          in: query
+          description: Filter by bulletin source (BOE, BOC, BOP_LPA, BOP_TFE)
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+        - name: date
+          in: query
+          description: Filter by publication date (YYYY-MM-DD)
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Full-text search in title and summary
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Paginated list of entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryList"
+
+  /entries/{id}:
+    get:
+      operationId: getEntry
+      tags: [entries]
+      summary: Get a single boletín entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Entry detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entry"
+        "404":
+          description: Not found
+
+  /entries/{id}/read:
+    patch:
+      operationId: markEntryRead
+      tags: [entries]
+      summary: Mark an entry as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entry"
+
+  /entries/{id}/bookmark:
+    patch:
+      operationId: toggleBookmark
+      tags: [entries]
+      summary: Toggle bookmark on an entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entry"
+
+  /sync:
+    post:
+      operationId: triggerSync
+      tags: [sync]
+      summary: Manually trigger a sync of all bulletins
+      responses:
+        "200":
+          description: Sync result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncResult"
+
+  /sync/status:
+    get:
+      operationId: getSyncStatus
+      tags: [sync]
+      summary: Get the last sync status and timestamp
+      responses:
+        "200":
+          description: Sync status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncStatus"
+
+  /stats/summary:
+    get:
+      operationId: getStatsSummary
+      tags: [stats]
+      summary: Dashboard summary stats
+      description: Total entries, unread count, entries per source, today's new entries
+      responses:
+        "200":
+          description: Summary statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsSummary"
+
+  /stats/recent:
+    get:
+      operationId: getRecentEntries
+      tags: [stats]
+      summary: Most recent entries across all sources
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Recent entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Entry"
+
+  /stats/categories:
+    get:
+      operationId: getCategoryBreakdown
+      tags: [stats]
+      summary: Count of entries grouped by category
+      responses:
+        "200":
+          description: Category breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryCount"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +223,136 @@ components:
       required:
         - status
 
+    Entry:
+      type: object
+      required:
+        - id
+        - source
+        - title
+        - publishedAt
+        - url
+        - isRead
+        - isBookmarked
+        - createdAt
+      properties:
+        id:
+          type: integer
+        source:
+          type: string
+          description: "BOE, BOC, BOP_LPA, or BOP_TFE"
+        title:
+          type: string
+        summary:
+          type: ["string", "null"]
+        category:
+          type: ["string", "null"]
+        publishedAt:
+          type: string
+          format: date
+        url:
+          type: string
+        isRead:
+          type: boolean
+        isBookmarked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    EntryList:
+      type: object
+      required:
+        - entries
+        - total
+        - page
+        - limit
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/Entry"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    SyncResult:
+      type: object
+      required:
+        - success
+        - message
+        - newEntries
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        newEntries:
+          type: integer
+        sources:
+          type: array
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+              count:
+                type: integer
+              success:
+                type: boolean
+
+    SyncStatus:
+      type: object
+      required:
+        - lastSyncAt
+        - isRunning
+      properties:
+        lastSyncAt:
+          type: ["string", "null"]
+        isRunning:
+          type: boolean
+        lastResult:
+          type: ["string", "null"]
+        scheduledTime:
+          type: string
+          description: "Cron schedule expression"
+
+    StatsSummary:
+      type: object
+      required:
+        - totalEntries
+        - unreadCount
+        - todayCount
+        - bookmarkedCount
+        - bySource
+      properties:
+        totalEntries:
+          type: integer
+        unreadCount:
+          type: integer
+        todayCount:
+          type: integer
+        bookmarkedCount:
+          type: integer
+        bySource:
+          type: array
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+              count:
+                type: integer
+
+    CategoryCount:
+      type: object
+      required:
+        - category
+        - count
+      properties:
+        category:
+          type: string
+        count:
+          type: integer
