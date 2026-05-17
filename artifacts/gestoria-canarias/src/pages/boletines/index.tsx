@@ -12,11 +12,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { SourceBadge } from "@/components/source-badge";
 import { formatDate } from "@/lib/format";
-import { Bookmark, BookmarkCheck, CheckCircle2, Circle, Search, Filter, ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { Bookmark, BookmarkCheck, CheckCircle2, Circle, Search, Filter, ChevronLeft, ChevronRight, FileText, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { exportToCsv, exportToPdf } from "@/lib/export";
 
 export default function BoletinesList() {
   const queryClient = useQueryClient();
@@ -115,6 +117,26 @@ export default function BoletinesList() {
                   <SelectItem value="BOP_TFE">BOP Tenerife</SelectItem>
                 </SelectContent>
               </Select>
+              {data?.entries && data.entries.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 shrink-0">
+                      <Download className="w-4 h-4" />
+                      Exportar
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => exportToCsv(data.entries, "boletines")}>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Descargar CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => exportToPdf(data.entries, "Registro de Boletines", "boletines")}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Descargar PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         </div>

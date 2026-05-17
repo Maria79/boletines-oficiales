@@ -11,7 +11,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { SourceBadge } from "@/components/source-badge";
 import { formatDate } from "@/lib/format";
 import { Link } from "wouter";
-import { FileText, Bell, Bookmark, ArrowRight, Activity, BellRing, AlertTriangle } from "lucide-react";
+import { FileText, Bell, Bookmark, ArrowRight, Activity, BellRing, AlertTriangle, Download } from "lucide-react";
+import { exportToCsv, exportToPdf } from "@/lib/export";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
 import { Badge } from "@/components/ui/badge";
 
@@ -119,9 +122,31 @@ export default function Dashboard() {
                   <Badge className="bg-amber-500 hover:bg-amber-600 text-white ml-2">{totalMatches} nuevos</Badge>
                 )}
               </div>
-              <Link href="/alertas" className="text-xs font-medium text-amber-700 hover:text-amber-900 dark:text-amber-600 dark:hover:text-amber-400">
-                Gestionar alertas
-              </Link>
+              <div className="flex items-center gap-3">
+                {alertMatches && totalMatches > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2 border-amber-300 text-amber-800 hover:bg-amber-100 hover:text-amber-900">
+                        <Download className="w-3.5 h-3.5" />
+                        Exportar avisos
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => exportToCsv(alertMatches.flatMap(m => m.entries), "avisos")}>
+                        <FileText className="w-4 h-4 mr-2" />
+                        Descargar CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => exportToPdf(alertMatches.flatMap(m => m.entries), "Avisos de hoy — Alertas activas", "avisos")}>
+                        <Download className="w-4 h-4 mr-2" />
+                        Descargar PDF
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+                <Link href="/alertas" className="text-xs font-medium text-amber-700 hover:text-amber-900 dark:text-amber-600 dark:hover:text-amber-400">
+                  Gestionar alertas
+                </Link>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="pt-4">
