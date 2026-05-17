@@ -33,3 +33,14 @@ export const syncLogsTable = pgTable("sync_logs", {
 export const insertSyncLogSchema = createInsertSchema(syncLogsTable).omit({ id: true });
 export type InsertSyncLog = z.infer<typeof insertSyncLogSchema>;
 export type SyncLog = typeof syncLogsTable.$inferSelect;
+
+export const alertsTable = pgTable("alerts", {
+  id: serial("id").primaryKey(),
+  category: text("category").notNull(),
+  source: text("source"), // optional: restrict to a specific bulletin source
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const insertAlertSchema = createInsertSchema(alertsTable).omit({ id: true, createdAt: true });
+export type InsertAlert = z.infer<typeof insertAlertSchema>;
+export type Alert = typeof alertsTable.$inferSelect;

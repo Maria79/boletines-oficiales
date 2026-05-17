@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Building2, LayoutDashboard, Library, RefreshCw } from "lucide-react";
+import { Building2, LayoutDashboard, Library, RefreshCw, BellRing } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation } from "wouter";
 
@@ -9,6 +9,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/boletines", label: "Boletines", icon: Library },
+    { href: "/alertas", label: "Alertas", icon: BellRing },
     { href: "/sincronizacion", label: "Sincronización", icon: RefreshCw },
   ];
 

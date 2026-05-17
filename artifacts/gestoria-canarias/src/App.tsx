@@ -7,6 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import BoletinesList from "@/pages/boletines/index";
 import BoletinDetail from "@/pages/boletines/[id]";
 import SyncPage from "@/pages/sync";
+import AlertasPage from "@/pages/alertas";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -25,6 +26,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/boletines" component={BoletinesList} />
         <Route path="/boletines/:id" component={BoletinDetail} />
+        <Route path="/alertas" component={AlertasPage} />
         <Route path="/sincronizacion" component={SyncPage} />
         <Route component={NotFound} />
       </Switch>

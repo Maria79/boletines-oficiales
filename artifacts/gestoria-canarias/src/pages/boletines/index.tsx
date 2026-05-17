@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { SourceBadge } from "@/components/source-badge";
 import { formatDate } from "@/lib/format";
-import { Bookmark, BookmarkCheck, CheckCircle2, Circle, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bookmark, BookmarkCheck, CheckCircle2, Circle, Search, Filter, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

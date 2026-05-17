@@ -73,6 +73,24 @@ export interface CategoryCount {
   count: number;
 }
 
+export interface Alert {
+  id: number;
+  category: string;
+  /** @nullable */
+  source?: string | null;
+  createdAt: string;
+}
+
+export interface CreateAlertBody {
+  category: string;
+  source?: string;
+}
+
+export interface AlertMatch {
+  alert: Alert;
+  entries: Entry[];
+}
+
 export type ListEntriesParams = {
 /**
  * Filter by bulletin source (BOE, BOC, BOP_LPA, BOP_TFE)

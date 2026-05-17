@@ -191,3 +191,58 @@ export const GetCategoryBreakdownResponseItem = zod.object({
 export const GetCategoryBreakdownResponse = zod.array(GetCategoryBreakdownResponseItem)
 
 
+/**
+ * @summary List all configured category alerts
+ */
+export const ListAlertsResponseItem = zod.object({
+  "id": zod.number(),
+  "category": zod.string(),
+  "source": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAlertsResponse = zod.array(ListAlertsResponseItem)
+
+
+/**
+ * @summary Create a new category alert
+ */
+export const CreateAlertBody = zod.object({
+  "category": zod.string(),
+  "source": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a category alert
+ */
+export const DeleteAlertParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get today's entries that match any configured alert
+ */
+export const GetAlertMatchesResponseItem = zod.object({
+  "alert": zod.object({
+  "id": zod.number(),
+  "category": zod.string(),
+  "source": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}),
+  "entries": zod.array(zod.object({
+  "id": zod.number(),
+  "source": zod.string().describe('BOE, BOC, BOP_LPA, or BOP_TFE'),
+  "title": zod.string(),
+  "summary": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "publishedAt": zod.coerce.date(),
+  "url": zod.string(),
+  "isRead": zod.boolean(),
+  "isBookmarked": zod.boolean(),
+  "createdAt": zod.coerce.date()
+}))
+})
+export const GetAlertMatchesResponse = zod.array(GetAlertMatchesResponseItem)
+
+

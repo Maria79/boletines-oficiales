@@ -16,6 +16,8 @@ tags:
     description: Manual sync operations
   - name: stats
     description: Dashboard statistics
+  - name: alerts
+    description: Category alert management
 paths:
   /healthz:
     get:
@@ -213,6 +215,72 @@ paths:
                 items:
                   $ref: "#/components/schemas/CategoryCount"
 
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: List all configured category alerts
+      responses:
+        "200":
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+    post:
+      operationId: createAlert
+      tags: [alerts]
+      summary: Create a new category alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAlertBody"
+      responses:
+        "201":
+          description: Alert created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+        "400":
+          description: Bad request
+
+  /alerts/{id}:
+    delete:
+      operationId: deleteAlert
+      tags: [alerts]
+      summary: Delete a category alert
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /alerts/matches:
+    get:
+      operationId: getAlertMatches
+      tags: [alerts]
+      summary: Get today's entries that match any configured alert
+      responses:
+        "200":
+          description: Matching entries with their alert
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AlertMatch"
+
 components:
   schemas:
     HealthStatus:
@@ -356,3 +424,43 @@ components:
           type: string
         count:
           type: integer
+
+    Alert:
+      type: object
+      required:
+        - id
+        - category
+        - createdAt
+      properties:
+        id:
+          type: integer
+        category:
+          type: string
+        source:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateAlertBody:
+      type: object
+      required:
+        - category
+      properties:
+        category:
+          type: string
+        source:
+          type: string
+
+    AlertMatch:
+      type: object
+      required:
+        - alert
+        - entries
+      properties:
+        alert:
+          $ref: "#/components/schemas/Alert"
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/Entry"
