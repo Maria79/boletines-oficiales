@@ -18,6 +18,10 @@ tags:
     description: Dashboard statistics
   - name: alerts
     description: Category alert management
+  - name: clients
+    description: Client management
+  - name: matches
+    description: Entry-client match management
 paths:
   /healthz:
     get:
@@ -375,6 +379,214 @@ paths:
                 items:
                   $ref: "#/components/schemas/AlertMatch"
 
+  /clients:
+    get:
+      operationId: listClients
+      tags: [clients]
+      summary: List all clients
+      parameters:
+        - name: active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Client"
+    post:
+      operationId: createClient
+      tags: [clients]
+      summary: Create a new client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClientBody"
+      responses:
+        "201":
+          description: Client created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "400":
+          description: Bad request
+
+  /clients/{id}:
+    get:
+      operationId: getClient
+      tags: [clients]
+      summary: Get a client by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Client found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateClient
+      tags: [clients]
+      summary: Update a client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClientBody"
+      responses:
+        "200":
+          description: Updated client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteClient
+      tags: [clients]
+      summary: Delete a client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /entries/{id}/matches:
+    get:
+      operationId: listEntryMatches
+      tags: [matches]
+      summary: List client matches for an entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of client matches for the entry
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EntryClientMatchWithClient"
+    post:
+      operationId: createEntryMatch
+      tags: [matches]
+      summary: Create a client match for an entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMatchBody"
+      responses:
+        "201":
+          description: Match created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryClientMatch"
+        "400":
+          description: Bad request
+
+  /entries/{id}/matches/{matchId}:
+    patch:
+      operationId: updateEntryMatch
+      tags: [matches]
+      summary: Update a client match (e.g. mark as reviewed)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reviewed:
+                  type: boolean
+                relevanceScore:
+                  type: integer
+                  minimum: 1
+                  maximum: 3
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Updated match
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryClientMatch"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteEntryMatch
+      tags: [matches]
+      summary: Delete a client match
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: matchId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
 components:
   schemas:
     HealthStatus:
@@ -588,3 +800,174 @@ components:
       properties:
         content:
           type: string
+
+    Client:
+      type: object
+      required:
+        - id
+        - name
+        - active
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+          enum: [autonomo, sl, sa, asociacion, comunidad_propietarios, otro]
+          nullable: true
+        cnae:
+          type: ["string", "null"]
+        municipality:
+          type: ["string", "null"]
+        taxRegime:
+          type: string
+          enum: [modulos, estimacion_directa, estimacion_directa_simplificada, otro]
+          nullable: true
+        keywords:
+          type: array
+          items:
+            type: string
+          nullable: true
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateClientBody:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [autonomo, sl, sa, asociacion, comunidad_propietarios, otro]
+        cnae:
+          type: string
+        municipality:
+          type: string
+        taxRegime:
+          type: string
+          enum: [modulos, estimacion_directa, estimacion_directa_simplificada, otro]
+        keywords:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+
+    UpdateClientBody:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [autonomo, sl, sa, asociacion, comunidad_propietarios, otro]
+        cnae:
+          type: string
+        municipality:
+          type: string
+        taxRegime:
+          type: string
+          enum: [modulos, estimacion_directa, estimacion_directa_simplificada, otro]
+        keywords:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+
+    EntryClientMatch:
+      type: object
+      required:
+        - id
+        - entryId
+        - clientId
+        - relevanceScore
+        - matchedBy
+        - reviewed
+        - createdAt
+      properties:
+        id:
+          type: integer
+        entryId:
+          type: integer
+        clientId:
+          type: integer
+        relevanceScore:
+          type: integer
+          minimum: 1
+          maximum: 3
+        reason:
+          type: ["string", "null"]
+        matchedBy:
+          type: string
+          enum: [rules, ai]
+        reviewed:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    EntryClientMatchWithClient:
+      type: object
+      required:
+        - id
+        - entryId
+        - clientId
+        - relevanceScore
+        - matchedBy
+        - reviewed
+        - createdAt
+        - client
+      properties:
+        id:
+          type: integer
+        entryId:
+          type: integer
+        clientId:
+          type: integer
+        relevanceScore:
+          type: integer
+          minimum: 1
+          maximum: 3
+        reason:
+          type: ["string", "null"]
+        matchedBy:
+          type: string
+          enum: [rules, ai]
+        reviewed:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        client:
+          $ref: "#/components/schemas/Client"
+
+    CreateMatchBody:
+      type: object
+      required:
+        - clientId
+        - relevanceScore
+        - matchedBy
+      properties:
+        clientId:
+          type: integer
+        relevanceScore:
+          type: integer
+          minimum: 1
+          maximum: 3
+        reason:
+          type: string
+        matchedBy:
+          type: string
+          enum: [rules, ai]

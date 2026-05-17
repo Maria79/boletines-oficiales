@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, boolean, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, date, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -56,3 +56,35 @@ export const alertsTable = pgTable("alerts", {
 export const insertAlertSchema = createInsertSchema(alertsTable).omit({ id: true, createdAt: true });
 export type InsertAlert = z.infer<typeof insertAlertSchema>;
 export type Alert = typeof alertsTable.$inferSelect;
+
+export const clientsTable = pgTable("clients", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").$type<"autonomo" | "sl" | "sa" | "asociacion" | "comunidad_propietarios" | "otro">(),
+  cnae: text("cnae"),
+  municipality: text("municipality"),
+  taxRegime: text("tax_regime").$type<"modulos" | "estimacion_directa" | "estimacion_directa_simplificada" | "otro">(),
+  keywords: text("keywords").array(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const insertClientSchema = createInsertSchema(clientsTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertClient = z.infer<typeof insertClientSchema>;
+export type Client = typeof clientsTable.$inferSelect;
+
+export const entryClientMatchesTable = pgTable("entry_client_matches", {
+  id: serial("id").primaryKey(),
+  entryId: integer("entry_id").notNull().references(() => entriesTable.id),
+  clientId: integer("client_id").notNull().references(() => clientsTable.id),
+  relevanceScore: integer("relevance_score").notNull().default(1),
+  reason: text("reason"),
+  matchedBy: text("matched_by").$type<"rules" | "ai">().notNull().default("rules"),
+  reviewed: boolean("reviewed").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const insertEntryClientMatchSchema = createInsertSchema(entryClientMatchesTable).omit({ id: true, createdAt: true });
+export type InsertEntryClientMatch = z.infer<typeof insertEntryClientMatchSchema>;
+export type EntryClientMatch = typeof entryClientMatchesTable.$inferSelect;

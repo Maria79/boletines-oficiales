@@ -103,6 +103,175 @@ export interface CreateNoteBody {
   content: string;
 }
 
+export type ClientType = typeof ClientType[keyof typeof ClientType] | null;
+
+
+export const ClientType = {
+  autonomo: 'autonomo',
+  sl: 'sl',
+  sa: 'sa',
+  asociacion: 'asociacion',
+  comunidad_propietarios: 'comunidad_propietarios',
+  otro: 'otro',
+} as const;
+
+export type ClientTaxRegime = typeof ClientTaxRegime[keyof typeof ClientTaxRegime] | null;
+
+
+export const ClientTaxRegime = {
+  modulos: 'modulos',
+  estimacion_directa: 'estimacion_directa',
+  estimacion_directa_simplificada: 'estimacion_directa_simplificada',
+  otro: 'otro',
+} as const;
+
+export interface Client {
+  id: number;
+  name: string;
+  type?: ClientType;
+  /** @nullable */
+  cnae?: string | null;
+  /** @nullable */
+  municipality?: string | null;
+  taxRegime?: ClientTaxRegime;
+  keywords?: string[] | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateClientBodyType = typeof CreateClientBodyType[keyof typeof CreateClientBodyType];
+
+
+export const CreateClientBodyType = {
+  autonomo: 'autonomo',
+  sl: 'sl',
+  sa: 'sa',
+  asociacion: 'asociacion',
+  comunidad_propietarios: 'comunidad_propietarios',
+  otro: 'otro',
+} as const;
+
+export type CreateClientBodyTaxRegime = typeof CreateClientBodyTaxRegime[keyof typeof CreateClientBodyTaxRegime];
+
+
+export const CreateClientBodyTaxRegime = {
+  modulos: 'modulos',
+  estimacion_directa: 'estimacion_directa',
+  estimacion_directa_simplificada: 'estimacion_directa_simplificada',
+  otro: 'otro',
+} as const;
+
+export interface CreateClientBody {
+  name: string;
+  type?: CreateClientBodyType;
+  cnae?: string;
+  municipality?: string;
+  taxRegime?: CreateClientBodyTaxRegime;
+  keywords?: string[];
+  active?: boolean;
+}
+
+export type UpdateClientBodyType = typeof UpdateClientBodyType[keyof typeof UpdateClientBodyType];
+
+
+export const UpdateClientBodyType = {
+  autonomo: 'autonomo',
+  sl: 'sl',
+  sa: 'sa',
+  asociacion: 'asociacion',
+  comunidad_propietarios: 'comunidad_propietarios',
+  otro: 'otro',
+} as const;
+
+export type UpdateClientBodyTaxRegime = typeof UpdateClientBodyTaxRegime[keyof typeof UpdateClientBodyTaxRegime];
+
+
+export const UpdateClientBodyTaxRegime = {
+  modulos: 'modulos',
+  estimacion_directa: 'estimacion_directa',
+  estimacion_directa_simplificada: 'estimacion_directa_simplificada',
+  otro: 'otro',
+} as const;
+
+export interface UpdateClientBody {
+  name?: string;
+  type?: UpdateClientBodyType;
+  cnae?: string;
+  municipality?: string;
+  taxRegime?: UpdateClientBodyTaxRegime;
+  keywords?: string[];
+  active?: boolean;
+}
+
+export type EntryClientMatchMatchedBy = typeof EntryClientMatchMatchedBy[keyof typeof EntryClientMatchMatchedBy];
+
+
+export const EntryClientMatchMatchedBy = {
+  rules: 'rules',
+  ai: 'ai',
+} as const;
+
+export interface EntryClientMatch {
+  id: number;
+  entryId: number;
+  clientId: number;
+  /**
+     * @minimum 1
+     * @maximum 3
+     */
+  relevanceScore: number;
+  /** @nullable */
+  reason?: string | null;
+  matchedBy: EntryClientMatchMatchedBy;
+  reviewed: boolean;
+  createdAt: string;
+}
+
+export type EntryClientMatchWithClientMatchedBy = typeof EntryClientMatchWithClientMatchedBy[keyof typeof EntryClientMatchWithClientMatchedBy];
+
+
+export const EntryClientMatchWithClientMatchedBy = {
+  rules: 'rules',
+  ai: 'ai',
+} as const;
+
+export interface EntryClientMatchWithClient {
+  id: number;
+  entryId: number;
+  clientId: number;
+  /**
+     * @minimum 1
+     * @maximum 3
+     */
+  relevanceScore: number;
+  /** @nullable */
+  reason?: string | null;
+  matchedBy: EntryClientMatchWithClientMatchedBy;
+  reviewed: boolean;
+  createdAt: string;
+  client: Client;
+}
+
+export type CreateMatchBodyMatchedBy = typeof CreateMatchBodyMatchedBy[keyof typeof CreateMatchBodyMatchedBy];
+
+
+export const CreateMatchBodyMatchedBy = {
+  rules: 'rules',
+  ai: 'ai',
+} as const;
+
+export interface CreateMatchBody {
+  clientId: number;
+  /**
+     * @minimum 1
+     * @maximum 3
+     */
+  relevanceScore: number;
+  reason?: string;
+  matchedBy: CreateMatchBodyMatchedBy;
+}
+
 export type ListEntriesParams = {
 /**
  * Filter by bulletin source (BOE, BOC, BOP_LPA, BOP_TFE)
@@ -132,5 +301,22 @@ limit?: number;
 
 export type GetRecentEntriesParams = {
 limit?: number;
+};
+
+export type ListClientsParams = {
+/**
+ * Filter by active status
+ */
+active?: boolean;
+};
+
+export type UpdateEntryMatchBody = {
+  reviewed?: boolean;
+  /**
+     * @minimum 1
+     * @maximum 3
+     */
+  relevanceScore?: number;
+  reason?: string;
 };
 

@@ -305,3 +305,197 @@ export const GetAlertMatchesResponseItem = zod.object({
 export const GetAlertMatchesResponse = zod.array(GetAlertMatchesResponseItem)
 
 
+/**
+ * @summary List all clients
+ */
+export const ListClientsQueryParams = zod.object({
+  "active": zod.coerce.boolean().optional().describe('Filter by active status')
+})
+
+export const ListClientsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).nullish(),
+  "cnae": zod.string().nullish(),
+  "municipality": zod.string().nullish(),
+  "taxRegime": zod.enum(['modulos', 'estimacion_directa', 'estimacion_directa_simplificada', 'otro']).nullish(),
+  "keywords": zod.array(zod.string()).nullish(),
+  "active": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListClientsResponse = zod.array(ListClientsResponseItem)
+
+
+/**
+ * @summary Create a new client
+ */
+export const CreateClientBody = zod.object({
+  "name": zod.string(),
+  "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).optional(),
+  "cnae": zod.string().optional(),
+  "municipality": zod.string().optional(),
+  "taxRegime": zod.enum(['modulos', 'estimacion_directa', 'estimacion_directa_simplificada', 'otro']).optional(),
+  "keywords": zod.array(zod.string()).optional(),
+  "active": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Get a client by ID
+ */
+export const GetClientParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetClientResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).nullish(),
+  "cnae": zod.string().nullish(),
+  "municipality": zod.string().nullish(),
+  "taxRegime": zod.enum(['modulos', 'estimacion_directa', 'estimacion_directa_simplificada', 'otro']).nullish(),
+  "keywords": zod.array(zod.string()).nullish(),
+  "active": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a client
+ */
+export const UpdateClientParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateClientBody = zod.object({
+  "name": zod.string().optional(),
+  "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).optional(),
+  "cnae": zod.string().optional(),
+  "municipality": zod.string().optional(),
+  "taxRegime": zod.enum(['modulos', 'estimacion_directa', 'estimacion_directa_simplificada', 'otro']).optional(),
+  "keywords": zod.array(zod.string()).optional(),
+  "active": zod.boolean().optional()
+})
+
+export const UpdateClientResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).nullish(),
+  "cnae": zod.string().nullish(),
+  "municipality": zod.string().nullish(),
+  "taxRegime": zod.enum(['modulos', 'estimacion_directa', 'estimacion_directa_simplificada', 'otro']).nullish(),
+  "keywords": zod.array(zod.string()).nullish(),
+  "active": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a client
+ */
+export const DeleteClientParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List client matches for an entry
+ */
+export const ListEntryMatchesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const listEntryMatchesResponseRelevanceScoreMax = 3;
+
+
+
+export const ListEntryMatchesResponseItem = zod.object({
+  "id": zod.number(),
+  "entryId": zod.number(),
+  "clientId": zod.number(),
+  "relevanceScore": zod.number().min(1).max(listEntryMatchesResponseRelevanceScoreMax),
+  "reason": zod.string().nullish(),
+  "matchedBy": zod.enum(['rules', 'ai']),
+  "reviewed": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "client": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).nullish(),
+  "cnae": zod.string().nullish(),
+  "municipality": zod.string().nullish(),
+  "taxRegime": zod.enum(['modulos', 'estimacion_directa', 'estimacion_directa_simplificada', 'otro']).nullish(),
+  "keywords": zod.array(zod.string()).nullish(),
+  "active": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+export const ListEntryMatchesResponse = zod.array(ListEntryMatchesResponseItem)
+
+
+/**
+ * @summary Create a client match for an entry
+ */
+export const CreateEntryMatchParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const createEntryMatchBodyRelevanceScoreMax = 3;
+
+
+
+export const CreateEntryMatchBody = zod.object({
+  "clientId": zod.number(),
+  "relevanceScore": zod.number().min(1).max(createEntryMatchBodyRelevanceScoreMax),
+  "reason": zod.string().optional(),
+  "matchedBy": zod.enum(['rules', 'ai'])
+})
+
+
+/**
+ * @summary Update a client match (e.g. mark as reviewed)
+ */
+export const UpdateEntryMatchParams = zod.object({
+  "id": zod.coerce.number(),
+  "matchId": zod.coerce.number()
+})
+
+export const updateEntryMatchBodyRelevanceScoreMax = 3;
+
+
+
+export const UpdateEntryMatchBody = zod.object({
+  "reviewed": zod.boolean().optional(),
+  "relevanceScore": zod.number().min(1).max(updateEntryMatchBodyRelevanceScoreMax).optional(),
+  "reason": zod.string().optional()
+})
+
+export const updateEntryMatchResponseRelevanceScoreMax = 3;
+
+
+
+export const UpdateEntryMatchResponse = zod.object({
+  "id": zod.number(),
+  "entryId": zod.number(),
+  "clientId": zod.number(),
+  "relevanceScore": zod.number().min(1).max(updateEntryMatchResponseRelevanceScoreMax),
+  "reason": zod.string().nullish(),
+  "matchedBy": zod.enum(['rules', 'ai']),
+  "reviewed": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a client match
+ */
+export const DeleteEntryMatchParams = zod.object({
+  "id": zod.coerce.number(),
+  "matchId": zod.coerce.number()
+})
+
+
