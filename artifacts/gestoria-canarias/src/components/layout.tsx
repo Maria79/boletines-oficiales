@@ -21,7 +21,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="p-6 flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
           <div className="flex flex-col">
-            <span className="font-bold text-lg leading-tight text-sidebar-foreground">Gestoría Canarias</span>
+            <span className="font-bold text-lg leading-tight text-[#073057]">Gestoría Canarias</span>
             <span className="text-xs text-sidebar-primary uppercase tracking-wider font-semibold">Boletines Oficiales</span>
           </div>
         </div>
