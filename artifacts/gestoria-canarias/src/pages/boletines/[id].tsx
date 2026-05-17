@@ -3,15 +3,188 @@ import {
   useGetEntry, 
   useMarkEntryRead, 
   useToggleBookmark,
-  getGetEntryQueryKey
+  getGetEntryQueryKey,
+  useListEntryNotes,
+  useCreateEntryNote,
+  useUpdateEntryNote,
+  useDeleteEntryNote,
+  getListEntryNotesQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { SourceBadge } from "@/components/source-badge";
 import { formatDate } from "@/lib/format";
-import { ArrowLeft, ExternalLink, Bookmark, BookmarkCheck, CheckCircle2, Clock } from "lucide-react";
-import { useEffect } from "react";
+import { ArrowLeft, ExternalLink, Bookmark, BookmarkCheck, CheckCircle2, Clock, StickyNote, Pencil, Trash } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+
+function formatNoteDate(dateStr: string) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return "Hoy";
+  if (diffDays === 1) return "Hace 1 día";
+  if (diffDays < 7) return `Hace ${diffDays} días`;
+  return formatDate(dateStr);
+}
+
+function NotesSection({ entryId }: { entryId: number }) {
+  const queryClient = useQueryClient();
+  const { data: notes = [], isLoading } = useListEntryNotes(entryId, {
+    query: {
+      enabled: !!entryId && !isNaN(entryId),
+      queryKey: getListEntryNotesQueryKey(entryId)
+    }
+  });
+  
+  const createNote = useCreateEntryNote();
+  const updateNote = useUpdateEntryNote();
+  const deleteNote = useDeleteEntryNote();
+
+  const [newContent, setNewContent] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState("");
+
+  const handleAddNote = () => {
+    if (!newContent.trim()) return;
+    createNote.mutate({ id: entryId, data: { content: newContent } }, {
+      onSuccess: () => {
+        setNewContent("");
+        queryClient.invalidateQueries({ queryKey: getListEntryNotesQueryKey(entryId) });
+      }
+    });
+  };
+
+  const handleUpdateNote = (noteId: number) => {
+    if (!editContent.trim()) return;
+    updateNote.mutate({ id: entryId, noteId, data: { content: editContent } }, {
+      onSuccess: () => {
+        setEditingId(null);
+        setEditContent("");
+        queryClient.invalidateQueries({ queryKey: getListEntryNotesQueryKey(entryId) });
+      }
+    });
+  };
+
+  const handleDeleteNote = (noteId: number) => {
+    if (window.confirm("¿Seguro que deseas eliminar esta nota?")) {
+      deleteNote.mutate({ id: entryId, noteId }, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListEntryNotesQueryKey(entryId) });
+        }
+      });
+    }
+  };
+
+  return (
+    <div className="mt-8 bg-amber-50/30 border-l-4 border-l-amber-400 rounded-r-xl shadow-sm overflow-hidden p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150 fill-mode-backwards">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="bg-amber-100 p-2 rounded-md text-amber-600">
+          <StickyNote className="w-5 h-5" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-amber-950">Notas privadas</h2>
+          <p className="text-sm text-amber-700/80">Anotaciones internas vinculadas a esta publicación</p>
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-4">
+        {isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-24 w-full bg-amber-100/50" />
+            <Skeleton className="h-24 w-full bg-amber-100/50" />
+          </div>
+        ) : notes.length === 0 ? (
+          <div className="text-amber-800/60 italic py-6 text-center bg-amber-100/30 rounded-lg border border-amber-200/50 border-dashed">
+            Sin notas para esta entrada. Añade la primera nota abajo.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {notes.map((note) => (
+              <div key={note.id} className="bg-white/80 border border-amber-200/50 rounded-lg p-5 shadow-sm">
+                {editingId === note.id ? (
+                  <div className="space-y-3">
+                    <Textarea 
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      className="min-h-[100px] border-amber-200 focus-visible:ring-amber-400 bg-white"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>
+                        Cancelar
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleUpdateNote(note.id)}
+                        disabled={updateNote.isPending || !editContent.trim()}
+                        className="bg-amber-500 hover:bg-amber-600 text-white"
+                      >
+                        Guardar cambios
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-zinc-800 whitespace-pre-wrap leading-relaxed">{note.content}</p>
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-amber-100">
+                      <span className="text-xs text-amber-700/60 font-medium">
+                        {formatNoteDate(note.createdAt)}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-amber-700/60 hover:text-amber-700 hover:bg-amber-100/50"
+                          onClick={() => {
+                            setEditingId(note.id);
+                            setEditContent(note.content);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive/60 hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteNote(note.id)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="pt-6 mt-6 border-t border-amber-200/40">
+          <div className="space-y-3">
+            <Textarea
+              placeholder="Escribe una nota sobre el impacto de esta normativa..."
+              value={newContent}
+              onChange={(e) => setNewContent(e.target.value)}
+              className="min-h-[100px] border-amber-200 focus-visible:ring-amber-400 bg-white/60 placeholder:text-amber-800/40"
+            />
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleAddNote}
+                disabled={createNote.isPending || !newContent.trim()}
+                className="bg-amber-600 hover:bg-amber-700 text-white shadow-sm"
+              >
+                Añadir nota
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function BoletinDetail() {
   const { id } = useParams();
@@ -146,6 +319,9 @@ export default function BoletinDetail() {
             Entrada registrada en el sistema el {formatDate(entry.createdAt)} • ID: {entry.id}
           </div>
         </div>
+
+        {/* Private Notes Section */}
+        <NotesSection entryId={entryId} />
       </div>
     </div>
   );

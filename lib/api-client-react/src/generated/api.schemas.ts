@@ -91,6 +91,18 @@ export interface AlertMatch {
   entries: Entry[];
 }
 
+export interface Note {
+  id: number;
+  entryId: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateNoteBody {
+  content: string;
+}
+
 export type ListEntriesParams = {
 /**
  * Filter by bulletin source (BOE, BOC, BOP_LPA, BOP_TFE)

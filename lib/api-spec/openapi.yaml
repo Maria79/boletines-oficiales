@@ -215,6 +215,100 @@ paths:
                 items:
                   $ref: "#/components/schemas/CategoryCount"
 
+  /entries/{id}/notes:
+    get:
+      operationId: listEntryNotes
+      tags: [entries]
+      summary: List notes for an entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+    post:
+      operationId: createEntryNote
+      tags: [entries]
+      summary: Create a note for an entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNoteBody"
+      responses:
+        "201":
+          description: Note created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+
+  /entries/{id}/notes/{noteId}:
+    patch:
+      operationId: updateEntryNote
+      tags: [entries]
+      summary: Update a note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNoteBody"
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+    delete:
+      operationId: deleteEntryNote
+      tags: [entries]
+      summary: Delete a note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
   /alerts:
     get:
       operationId: listAlerts
@@ -464,3 +558,33 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Entry"
+
+    Note:
+      type: object
+      required:
+        - id
+        - entryId
+        - content
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+        entryId:
+          type: integer
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateNoteBody:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string

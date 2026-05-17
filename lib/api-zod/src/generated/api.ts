@@ -192,6 +192,65 @@ export const GetCategoryBreakdownResponse = zod.array(GetCategoryBreakdownRespon
 
 
 /**
+ * @summary List notes for an entry
+ */
+export const ListEntryNotesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListEntryNotesResponseItem = zod.object({
+  "id": zod.number(),
+  "entryId": zod.number(),
+  "content": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListEntryNotesResponse = zod.array(ListEntryNotesResponseItem)
+
+
+/**
+ * @summary Create a note for an entry
+ */
+export const CreateEntryNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CreateEntryNoteBody = zod.object({
+  "content": zod.string()
+})
+
+
+/**
+ * @summary Update a note
+ */
+export const UpdateEntryNoteParams = zod.object({
+  "id": zod.coerce.number(),
+  "noteId": zod.coerce.number()
+})
+
+export const UpdateEntryNoteBody = zod.object({
+  "content": zod.string()
+})
+
+export const UpdateEntryNoteResponse = zod.object({
+  "id": zod.number(),
+  "entryId": zod.number(),
+  "content": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a note
+ */
+export const DeleteEntryNoteParams = zod.object({
+  "id": zod.coerce.number(),
+  "noteId": zod.coerce.number()
+})
+
+
+/**
  * @summary List all configured category alerts
  */
 export const ListAlertsResponseItem = zod.object({

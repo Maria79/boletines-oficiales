@@ -4,6 +4,7 @@ import entriesRouter from "./entries";
 import syncRouter from "./sync";
 import statsRouter from "./stats";
 import alertsRouter from "./alerts";
+import notesRouter from "./notes";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(entriesRouter);
 router.use(syncRouter);
 router.use(statsRouter);
 router.use(alertsRouter);
+router.use(notesRouter);
 
 export default router;

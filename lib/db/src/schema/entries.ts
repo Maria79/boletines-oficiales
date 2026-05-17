@@ -34,6 +34,18 @@ export const insertSyncLogSchema = createInsertSchema(syncLogsTable).omit({ id: 
 export type InsertSyncLog = z.infer<typeof insertSyncLogSchema>;
 export type SyncLog = typeof syncLogsTable.$inferSelect;
 
+export const entryNotesTable = pgTable("entry_notes", {
+  id: serial("id").primaryKey(),
+  entryId: serial("entry_id").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export const insertEntryNoteSchema = createInsertSchema(entryNotesTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertEntryNote = z.infer<typeof insertEntryNoteSchema>;
+export type EntryNote = typeof entryNotesTable.$inferSelect;
+
 export const alertsTable = pgTable("alerts", {
   id: serial("id").primaryKey(),
   category: text("category").notNull(),

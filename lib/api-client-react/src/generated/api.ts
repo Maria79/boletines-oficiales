@@ -24,11 +24,13 @@ import type {
   AlertMatch,
   CategoryCount,
   CreateAlertBody,
+  CreateNoteBody,
   Entry,
   EntryList,
   GetRecentEntriesParams,
   HealthStatus,
   ListEntriesParams,
+  Note,
   StatsSummary,
   SyncResult,
   SyncStatus
@@ -811,6 +813,301 @@ export function useGetCategoryBreakdown<TData = Awaited<ReturnType<typeof getCat
 
 
 
+
+export const getListEntryNotesUrl = (id: number,) => {
+
+
+
+
+  return `/api/entries/${id}/notes`
+}
+
+/**
+ * @summary List notes for an entry
+ */
+export const listEntryNotes = async (id: number, options?: RequestInit): Promise<Note[]> => {
+
+  return customFetch<Note[]>(getListEntryNotesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEntryNotesQueryKey = (id: number,) => {
+    return [
+    `/api/entries/${id}/notes`
+    ] as const;
+    }
+
+
+export const getListEntryNotesQueryOptions = <TData = Awaited<ReturnType<typeof listEntryNotes>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEntryNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEntryNotesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEntryNotes>>> = ({ signal }) => listEntryNotes(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEntryNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListEntryNotesQueryResult = NonNullable<Awaited<ReturnType<typeof listEntryNotes>>>
+export type ListEntryNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List notes for an entry
+ */
+
+export function useListEntryNotes<TData = Awaited<ReturnType<typeof listEntryNotes>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEntryNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListEntryNotesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateEntryNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/entries/${id}/notes`
+}
+
+/**
+ * @summary Create a note for an entry
+ */
+export const createEntryNote = async (id: number,
+    createNoteBody: CreateNoteBody, options?: RequestInit): Promise<Note> => {
+
+  return customFetch<Note>(getCreateEntryNoteUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createNoteBody,)
+  }
+);}
+
+
+
+
+export const getCreateEntryNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEntryNote>>, TError,{id: number;data: BodyType<CreateNoteBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createEntryNote>>, TError,{id: number;data: BodyType<CreateNoteBody>}, TContext> => {
+
+const mutationKey = ['createEntryNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEntryNote>>, {id: number;data: BodyType<CreateNoteBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createEntryNote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateEntryNoteMutationResult = NonNullable<Awaited<ReturnType<typeof createEntryNote>>>
+    export type CreateEntryNoteMutationBody = BodyType<CreateNoteBody>
+    export type CreateEntryNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a note for an entry
+ */
+export const useCreateEntryNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEntryNote>>, TError,{id: number;data: BodyType<CreateNoteBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createEntryNote>>,
+        TError,
+        {id: number;data: BodyType<CreateNoteBody>},
+        TContext
+      > => {
+      return useMutation(getCreateEntryNoteMutationOptions(options));
+    }
+
+export const getUpdateEntryNoteUrl = (id: number,
+    noteId: number,) => {
+
+
+
+
+  return `/api/entries/${id}/notes/${noteId}`
+}
+
+/**
+ * @summary Update a note
+ */
+export const updateEntryNote = async (id: number,
+    noteId: number,
+    createNoteBody: CreateNoteBody, options?: RequestInit): Promise<Note> => {
+
+  return customFetch<Note>(getUpdateEntryNoteUrl(id,noteId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createNoteBody,)
+  }
+);}
+
+
+
+
+export const getUpdateEntryNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEntryNote>>, TError,{id: number;noteId: number;data: BodyType<CreateNoteBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateEntryNote>>, TError,{id: number;noteId: number;data: BodyType<CreateNoteBody>}, TContext> => {
+
+const mutationKey = ['updateEntryNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEntryNote>>, {id: number;noteId: number;data: BodyType<CreateNoteBody>}> = (props) => {
+          const {id,noteId,data} = props ?? {};
+
+          return  updateEntryNote(id,noteId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateEntryNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateEntryNote>>>
+    export type UpdateEntryNoteMutationBody = BodyType<CreateNoteBody>
+    export type UpdateEntryNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a note
+ */
+export const useUpdateEntryNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEntryNote>>, TError,{id: number;noteId: number;data: BodyType<CreateNoteBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateEntryNote>>,
+        TError,
+        {id: number;noteId: number;data: BodyType<CreateNoteBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateEntryNoteMutationOptions(options));
+    }
+
+export const getDeleteEntryNoteUrl = (id: number,
+    noteId: number,) => {
+
+
+
+
+  return `/api/entries/${id}/notes/${noteId}`
+}
+
+/**
+ * @summary Delete a note
+ */
+export const deleteEntryNote = async (id: number,
+    noteId: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteEntryNoteUrl(id,noteId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteEntryNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEntryNote>>, TError,{id: number;noteId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteEntryNote>>, TError,{id: number;noteId: number}, TContext> => {
+
+const mutationKey = ['deleteEntryNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEntryNote>>, {id: number;noteId: number}> = (props) => {
+          const {id,noteId} = props ?? {};
+
+          return  deleteEntryNote(id,noteId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteEntryNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEntryNote>>>
+
+    export type DeleteEntryNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a note
+ */
+export const useDeleteEntryNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEntryNote>>, TError,{id: number;noteId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteEntryNote>>,
+        TError,
+        {id: number;noteId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteEntryNoteMutationOptions(options));
+    }
 
 export const getListAlertsUrl = () => {
 
