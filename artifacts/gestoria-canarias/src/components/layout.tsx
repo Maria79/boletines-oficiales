@@ -17,7 +17,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col">
+      <aside className="w-64 flex-shrink-0 border-r border-sidebar-border flex flex-col bg-[#8db0b3]">
         <div className="p-6 flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
           <div className="flex flex-col">
@@ -51,7 +51,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
           © {new Date().getFullYear()} Gestoría Canarias
         </div>
       </aside>
-
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="flex-1 overflow-auto">
