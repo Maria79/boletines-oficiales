@@ -33,12 +33,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                )}
+                className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors text-sidebar-accent-foreground bg-[#e1eaf7]"
               >
                 <item.icon className="w-4 h-4" />
                 {item.label}
