@@ -5,6 +5,7 @@ import syncRouter from "./sync";
 import statsRouter from "./stats";
 import alertsRouter from "./alerts";
 import notesRouter from "./notes";
+import clientsRouter from "./clients";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(syncRouter);
 router.use(statsRouter);
 router.use(alertsRouter);
 router.use(notesRouter);
+router.use(clientsRouter);
 
 export default router;
