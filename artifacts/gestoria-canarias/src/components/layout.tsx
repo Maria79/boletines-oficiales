@@ -1,7 +1,8 @@
 import { Link } from "wouter";
-import { Building2, LayoutDashboard, Library, RefreshCw, BellRing } from "lucide-react";
+import { LayoutDashboard, Library, RefreshCw, BellRing } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation } from "wouter";
+import logo from "@assets/logo1_1779010669308.png";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -18,7 +19,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="w-64 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col">
         <div className="p-6 flex items-center gap-3">
-          <Building2 className="w-8 h-8 text-sidebar-primary" />
+          <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
           <div className="flex flex-col">
             <span className="font-bold text-lg leading-tight text-sidebar-foreground">Gestoría Canarias</span>
             <span className="text-xs text-sidebar-primary uppercase tracking-wider font-semibold">Boletines Oficiales</span>
