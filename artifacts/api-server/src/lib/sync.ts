@@ -1,6 +1,7 @@
 import { db, entriesTable, syncLogsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { logger } from "./logger";
+import { matchEntryToClients } from "./matching";
 import { parseStringPromise } from "xml2js";
 
 interface FetchedEntry {
@@ -250,7 +251,7 @@ export async function runSync(): Promise<{
             .limit(1);
 
           if (existing.length === 0) {
-            await db.insert(entriesTable).values({
+            const [inserted] = await db.insert(entriesTable).values({
               source: entry.source,
               title: entry.title,
               summary: entry.summary ?? null,
@@ -260,9 +261,15 @@ export async function runSync(): Promise<{
               externalId: entry.externalId,
               isRead: false,
               isBookmarked: false,
-            });
+            }).returning({ id: entriesTable.id });
             newCount++;
             totalNew++;
+            // Run rule-based client matching for the new entry (non-blocking)
+            if (inserted) {
+              matchEntryToClients(inserted.id).catch((err) =>
+                logger.warn({ err, entryId: inserted.id }, "Error in client matching")
+              );
+            }
           }
         } catch (insertErr) {
           logger.warn({ err: insertErr, externalId: entry.externalId }, "Error inserting entry");
