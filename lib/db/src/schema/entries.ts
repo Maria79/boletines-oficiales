@@ -60,6 +60,9 @@ export type Alert = typeof alertsTable.$inferSelect;
 export const clientsTable = pgTable("clients", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  nif: text("nif").unique(),
+  nifType: text("nif_type").$type<"nif" | "cif">(),
+  bormeMonitored: boolean("borme_monitored").notNull().default(true),
   type: text("type").$type<"autonomo" | "sl" | "sa" | "asociacion" | "comunidad_propietarios" | "otro">(),
   cnae: text("cnae"),
   municipality: text("municipality"),

@@ -9,10 +9,24 @@ export interface HealthStatus {
   status: string;
 }
 
+/**
+ * BOE, BOC, BOP_LPA, BOP_TFE, or BORME
+ */
+export type EntrySource = typeof EntrySource[keyof typeof EntrySource];
+
+
+export const EntrySource = {
+  BOE: 'BOE',
+  BOC: 'BOC',
+  BOP_LPA: 'BOP_LPA',
+  BOP_TFE: 'BOP_TFE',
+  BORME: 'BORME',
+} as const;
+
 export interface Entry {
   id: number;
-  /** BOE, BOC, BOP_LPA, or BOP_TFE */
-  source: string;
+  /** BOE, BOC, BOP_LPA, BOP_TFE, or BORME */
+  source: EntrySource;
   title: string;
   /** @nullable */
   summary?: string | null;
@@ -103,6 +117,14 @@ export interface CreateNoteBody {
   content: string;
 }
 
+export type ClientNifType = typeof ClientNifType[keyof typeof ClientNifType] | null;
+
+
+export const ClientNifType = {
+  nif: 'nif',
+  cif: 'cif',
+} as const;
+
 export type ClientType = typeof ClientType[keyof typeof ClientType] | null;
 
 
@@ -128,6 +150,13 @@ export const ClientTaxRegime = {
 export interface Client {
   id: number;
   name: string;
+  /**
+     * NIF (personas físicas) o CIF (personas jurídicas)
+     * @nullable
+     */
+  nif?: string | null;
+  nifType?: ClientNifType;
+  bormeMonitored: boolean;
   type?: ClientType;
   /** @nullable */
   cnae?: string | null;
@@ -164,12 +193,15 @@ export const CreateClientBodyTaxRegime = {
 
 export interface CreateClientBody {
   name: string;
+  /** NIF/NIE/CIF español válido — se infiere nif_type automáticamente */
+  nif?: string;
   type?: CreateClientBodyType;
   cnae?: string;
   municipality?: string;
   taxRegime?: CreateClientBodyTaxRegime;
   keywords?: string[];
   active?: boolean;
+  bormeMonitored?: boolean;
 }
 
 export type UpdateClientBodyType = typeof UpdateClientBodyType[keyof typeof UpdateClientBodyType];
@@ -196,12 +228,15 @@ export const UpdateClientBodyTaxRegime = {
 
 export interface UpdateClientBody {
   name?: string;
+  /** NIF/NIE/CIF español válido — se infiere nif_type automáticamente */
+  nif?: string;
   type?: UpdateClientBodyType;
   cnae?: string;
   municipality?: string;
   taxRegime?: UpdateClientBodyTaxRegime;
   keywords?: string[];
   active?: boolean;
+  bormeMonitored?: boolean;
 }
 
 export type EntryClientMatchMatchedBy = typeof EntryClientMatchMatchedBy[keyof typeof EntryClientMatchMatchedBy];

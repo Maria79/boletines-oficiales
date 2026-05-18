@@ -82,6 +82,7 @@ interface ScoredMatch {
 
 function scoreClientForEntry(
   client: {
+    nif: string | null;
     type: string | null;
     cnae: string | null;
     municipality: string | null;
@@ -94,6 +95,18 @@ function scoreClientForEntry(
   }
 ): ScoredMatch | null {
   const searchText = [entry.title, entry.summary ?? ""].join(" ");
+  const searchTextNorm = normalize(searchText);
+
+  // ── SCORE 3 FORZADO: NIF/CIF del cliente mencionado explícitamente ─────────
+  if (client.nif) {
+    const nifNorm = normalize(client.nif);
+    if (searchTextNorm.includes(nifNorm)) {
+      return {
+        score: 3,
+        reason: "El NIF/CIF de este cliente aparece mencionado directamente en esta disposición.",
+      };
+    }
+  }
 
   // ── SCORE 3: keyword or municipality hit in title/summary ──────────────────
   if (client.keywords && client.keywords.length > 0) {
@@ -190,6 +203,7 @@ export async function matchEntryToClients(entryId: number): Promise<number> {
   const clients = await db
     .select({
       id: clientsTable.id,
+      nif: clientsTable.nif,
       type: clientsTable.type,
       cnae: clientsTable.cnae,
       municipality: clientsTable.municipality,

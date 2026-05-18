@@ -2,6 +2,7 @@ import { db, entriesTable, syncLogsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { logger } from "./logger";
 import { matchEntryToClients } from "./matching";
+import { fetchBORME } from "./borme-fetcher";
 import { parseStringPromise } from "xml2js";
 
 interface FetchedEntry {
@@ -213,11 +214,12 @@ export async function runSync(): Promise<{
   const logId = logEntry!.id;
 
   try {
-    const [boeEntries, bocEntries, bopLpaEntries, bopTfeEntries] = await Promise.allSettled([
+    const [boeEntries, bocEntries, bopLpaEntries, bopTfeEntries, bormeEntries] = await Promise.allSettled([
       fetchBOE(),
       fetchBOC(),
       fetchBOPLasPalmas(),
       fetchBOPTenerife(),
+      fetchBORME(),
     ]);
 
     const sourceResults = [
@@ -225,6 +227,7 @@ export async function runSync(): Promise<{
       { source: "BOC", result: bocEntries },
       { source: "BOP_LPA", result: bopLpaEntries },
       { source: "BOP_TFE", result: bopTfeEntries },
+      { source: "BORME", result: bormeEntries },
     ];
 
     let totalNew = 0;

@@ -36,7 +36,7 @@ export const ListEntriesQueryParams = zod.object({
 export const ListEntriesResponse = zod.object({
   "entries": zod.array(zod.object({
   "id": zod.number(),
-  "source": zod.string().describe('BOE, BOC, BOP_LPA, or BOP_TFE'),
+  "source": zod.enum(['BOE', 'BOC', 'BOP_LPA', 'BOP_TFE', 'BORME']).describe('BOE, BOC, BOP_LPA, BOP_TFE, or BORME'),
   "title": zod.string(),
   "summary": zod.string().nullish(),
   "category": zod.string().nullish(),
@@ -61,7 +61,7 @@ export const GetEntryParams = zod.object({
 
 export const GetEntryResponse = zod.object({
   "id": zod.number(),
-  "source": zod.string().describe('BOE, BOC, BOP_LPA, or BOP_TFE'),
+  "source": zod.enum(['BOE', 'BOC', 'BOP_LPA', 'BOP_TFE', 'BORME']).describe('BOE, BOC, BOP_LPA, BOP_TFE, or BORME'),
   "title": zod.string(),
   "summary": zod.string().nullish(),
   "category": zod.string().nullish(),
@@ -82,7 +82,7 @@ export const MarkEntryReadParams = zod.object({
 
 export const MarkEntryReadResponse = zod.object({
   "id": zod.number(),
-  "source": zod.string().describe('BOE, BOC, BOP_LPA, or BOP_TFE'),
+  "source": zod.enum(['BOE', 'BOC', 'BOP_LPA', 'BOP_TFE', 'BORME']).describe('BOE, BOC, BOP_LPA, BOP_TFE, or BORME'),
   "title": zod.string(),
   "summary": zod.string().nullish(),
   "category": zod.string().nullish(),
@@ -103,7 +103,7 @@ export const ToggleBookmarkParams = zod.object({
 
 export const ToggleBookmarkResponse = zod.object({
   "id": zod.number(),
-  "source": zod.string().describe('BOE, BOC, BOP_LPA, or BOP_TFE'),
+  "source": zod.enum(['BOE', 'BOC', 'BOP_LPA', 'BOP_TFE', 'BORME']).describe('BOE, BOC, BOP_LPA, BOP_TFE, or BORME'),
   "title": zod.string(),
   "summary": zod.string().nullish(),
   "category": zod.string().nullish(),
@@ -168,7 +168,7 @@ export const GetRecentEntriesQueryParams = zod.object({
 
 export const GetRecentEntriesResponseItem = zod.object({
   "id": zod.number(),
-  "source": zod.string().describe('BOE, BOC, BOP_LPA, or BOP_TFE'),
+  "source": zod.enum(['BOE', 'BOC', 'BOP_LPA', 'BOP_TFE', 'BORME']).describe('BOE, BOC, BOP_LPA, BOP_TFE, or BORME'),
   "title": zod.string(),
   "summary": zod.string().nullish(),
   "category": zod.string().nullish(),
@@ -291,7 +291,7 @@ export const GetAlertMatchesResponseItem = zod.object({
 }),
   "entries": zod.array(zod.object({
   "id": zod.number(),
-  "source": zod.string().describe('BOE, BOC, BOP_LPA, or BOP_TFE'),
+  "source": zod.enum(['BOE', 'BOC', 'BOP_LPA', 'BOP_TFE', 'BORME']).describe('BOE, BOC, BOP_LPA, BOP_TFE, or BORME'),
   "title": zod.string(),
   "summary": zod.string().nullish(),
   "category": zod.string().nullish(),
@@ -315,6 +315,9 @@ export const ListClientsQueryParams = zod.object({
 export const ListClientsResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "nif": zod.string().nullish().describe('NIF (personas físicas) o CIF (personas jurídicas)'),
+  "nifType": zod.enum(['nif', 'cif']).nullish(),
+  "bormeMonitored": zod.boolean(),
   "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).nullish(),
   "cnae": zod.string().nullish(),
   "municipality": zod.string().nullish(),
@@ -332,12 +335,14 @@ export const ListClientsResponse = zod.array(ListClientsResponseItem)
  */
 export const CreateClientBody = zod.object({
   "name": zod.string(),
+  "nif": zod.string().optional().describe('NIF\/NIE\/CIF español válido — se infiere nif_type automáticamente'),
   "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).optional(),
   "cnae": zod.string().optional(),
   "municipality": zod.string().optional(),
   "taxRegime": zod.enum(['modulos', 'estimacion_directa', 'estimacion_directa_simplificada', 'otro']).optional(),
   "keywords": zod.array(zod.string()).optional(),
-  "active": zod.boolean().optional()
+  "active": zod.boolean().optional(),
+  "bormeMonitored": zod.boolean().optional()
 })
 
 
@@ -351,6 +356,9 @@ export const GetClientParams = zod.object({
 export const GetClientResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "nif": zod.string().nullish().describe('NIF (personas físicas) o CIF (personas jurídicas)'),
+  "nifType": zod.enum(['nif', 'cif']).nullish(),
+  "bormeMonitored": zod.boolean(),
   "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).nullish(),
   "cnae": zod.string().nullish(),
   "municipality": zod.string().nullish(),
@@ -371,17 +379,22 @@ export const UpdateClientParams = zod.object({
 
 export const UpdateClientBody = zod.object({
   "name": zod.string().optional(),
+  "nif": zod.string().optional().describe('NIF\/NIE\/CIF español válido — se infiere nif_type automáticamente'),
   "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).optional(),
   "cnae": zod.string().optional(),
   "municipality": zod.string().optional(),
   "taxRegime": zod.enum(['modulos', 'estimacion_directa', 'estimacion_directa_simplificada', 'otro']).optional(),
   "keywords": zod.array(zod.string()).optional(),
-  "active": zod.boolean().optional()
+  "active": zod.boolean().optional(),
+  "bormeMonitored": zod.boolean().optional()
 })
 
 export const UpdateClientResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "nif": zod.string().nullish().describe('NIF (personas físicas) o CIF (personas jurídicas)'),
+  "nifType": zod.enum(['nif', 'cif']).nullish(),
+  "bormeMonitored": zod.boolean(),
   "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).nullish(),
   "cnae": zod.string().nullish(),
   "municipality": zod.string().nullish(),
@@ -424,6 +437,9 @@ export const ListEntryMatchesResponseItem = zod.object({
   "client": zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "nif": zod.string().nullish().describe('NIF (personas físicas) o CIF (personas jurídicas)'),
+  "nifType": zod.enum(['nif', 'cif']).nullish(),
+  "bormeMonitored": zod.boolean(),
   "type": zod.enum(['autonomo', 'sl', 'sa', 'asociacion', 'comunidad_propietarios', 'otro']).nullish(),
   "cnae": zod.string().nullish(),
   "municipality": zod.string().nullish(),

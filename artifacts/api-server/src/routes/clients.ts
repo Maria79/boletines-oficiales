@@ -5,7 +5,27 @@ import { CreateClientBody, UpdateClientBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
-// GET /clients — lista paginada con filtros opcionales
+// ── NIF/CIF validation helpers ────────────────────────────────────────────────
+
+// NIF (DNI): 8 digits + 1 control letter
+const NIF_REGEX = /^[0-9]{8}[A-Z]$/i;
+// NIE (foreign): X|Y|Z + 7 digits + 1 control letter
+const NIE_REGEX = /^[XYZ][0-9]{7}[A-Z]$/i;
+// CIF (legal entities): 1 letter (not X/Y/Z) + 7 digits + 1 digit/letter
+const CIF_REGEX = /^[ABCDEFGHJKLMNPQRSUVW][0-9]{7}[0-9A-J]$/i;
+
+function validateNif(raw: string): { valid: boolean; nifType: "nif" | "cif" | null; normalized: string } {
+  const normalized = raw.trim().toUpperCase().replace(/[\s\-\.]/g, "");
+  if (NIF_REGEX.test(normalized) || NIE_REGEX.test(normalized)) {
+    return { valid: true, nifType: "nif", normalized };
+  }
+  if (CIF_REGEX.test(normalized)) {
+    return { valid: true, nifType: "cif", normalized };
+  }
+  return { valid: false, nifType: null, normalized };
+}
+
+// ── GET /clients — lista paginada con filtros opcionales ─────────────────────
 router.get("/clients", async (req, res): Promise<void> => {
   const { active, type, municipality, page, limit: limitParam } = req.query as Record<string, string | undefined>;
 
@@ -37,7 +57,7 @@ router.get("/clients", async (req, res): Promise<void> => {
   res.json(clients);
 });
 
-// GET /clients/:id — ficha completa con los últimos matches
+// ── GET /clients/:id — ficha completa con los últimos matches ────────────────
 router.get("/clients/:id", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
@@ -81,7 +101,7 @@ router.get("/clients/:id", async (req, res): Promise<void> => {
   res.json({ ...client, recentMatches });
 });
 
-// POST /clients — crear cliente
+// ── POST /clients — crear cliente ────────────────────────────────────────────
 router.post("/clients", async (req, res): Promise<void> => {
   const parsed = CreateClientBody.safeParse(req.body);
   if (!parsed.success) {
@@ -89,12 +109,41 @@ router.post("/clients", async (req, res): Promise<void> => {
     return;
   }
 
-  const { name, type, cnae, municipality, taxRegime, keywords, active } = parsed.data;
+  const { name, nif, type, cnae, municipality, taxRegime, keywords, active, bormeMonitored } = parsed.data;
+
+  // Validate and infer nif_type
+  let normalizedNif: string | null = null;
+  let inferredNifType: "nif" | "cif" | null = null;
+
+  if (nif) {
+    const result = validateNif(nif);
+    if (!result.valid) {
+      res.status(400).json({ error: `NIF/CIF inválido: "${nif}". Formatos aceptados: NIF (12345678A), NIE (X1234567A), CIF (A1234567J)` });
+      return;
+    }
+    normalizedNif = result.normalized;
+    inferredNifType = result.nifType;
+
+    // Check uniqueness
+    const [existing] = await db
+      .select({ id: clientsTable.id })
+      .from(clientsTable)
+      .where(eq(clientsTable.nif, normalizedNif))
+      .limit(1);
+
+    if (existing) {
+      res.status(409).json({ error: `Ya existe un cliente con el NIF/CIF ${normalizedNif}` });
+      return;
+    }
+  }
 
   const [client] = await db
     .insert(clientsTable)
     .values({
       name: name.trim(),
+      nif: normalizedNif,
+      nifType: inferredNifType,
+      bormeMonitored: bormeMonitored ?? true,
       type: type as typeof clientsTable.type._.data ?? null,
       cnae: cnae ?? null,
       municipality: municipality ?? null,
@@ -104,11 +153,11 @@ router.post("/clients", async (req, res): Promise<void> => {
     })
     .returning();
 
-  req.log.info({ clientId: client.id }, "client created");
+  req.log.info({ clientId: client.id, nif: normalizedNif }, "client created");
   res.status(201).json(client);
 });
 
-// PATCH /clients/:id — actualizar cliente
+// ── PATCH /clients/:id — actualizar cliente ──────────────────────────────────
 router.patch("/clients/:id", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);
@@ -133,6 +182,38 @@ router.patch("/clients/:id", async (req, res): Promise<void> => {
   if (data.taxRegime !== undefined) updates.taxRegime = data.taxRegime as typeof clientsTable.taxRegime._.data;
   if (data.keywords !== undefined) updates.keywords = data.keywords;
   if (data.active !== undefined) updates.active = data.active;
+  if (data.bormeMonitored !== undefined) updates.bormeMonitored = data.bormeMonitored;
+
+  // Validate and infer nif_type if nif is being updated
+  if (data.nif !== undefined) {
+    const result = validateNif(data.nif);
+    if (!result.valid) {
+      res.status(400).json({ error: `NIF/CIF inválido: "${data.nif}". Formatos aceptados: NIF (12345678A), NIE (X1234567A), CIF (A1234567J)` });
+      return;
+    }
+    // Check uniqueness (excluding current client)
+    const [existing] = await db
+      .select({ id: clientsTable.id })
+      .from(clientsTable)
+      .where(and(eq(clientsTable.nif, result.normalized), eq(clientsTable.id, id)))
+      .limit(1);
+
+    // Only check conflict if it's a different client
+    if (!existing) {
+      const [conflict] = await db
+        .select({ id: clientsTable.id })
+        .from(clientsTable)
+        .where(eq(clientsTable.nif, result.normalized))
+        .limit(1);
+      if (conflict) {
+        res.status(409).json({ error: `Ya existe un cliente con el NIF/CIF ${result.normalized}` });
+        return;
+      }
+    }
+
+    updates.nif = result.normalized;
+    updates.nifType = result.nifType;
+  }
 
   if (Object.keys(updates).length === 0) {
     res.status(400).json({ error: "No se han proporcionado campos para actualizar" });
@@ -154,7 +235,7 @@ router.patch("/clients/:id", async (req, res): Promise<void> => {
   res.json(client);
 });
 
-// DELETE /clients/:id — soft delete (active = false)
+// ── DELETE /clients/:id — soft delete (active = false) ──────────────────────
 router.delete("/clients/:id", async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(rawId, 10);

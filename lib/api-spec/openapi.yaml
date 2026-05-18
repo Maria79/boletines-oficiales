@@ -613,7 +613,8 @@ components:
           type: integer
         source:
           type: string
-          description: "BOE, BOC, BOP_LPA, or BOP_TFE"
+          enum: [BOE, BOC, BOP_LPA, BOP_TFE, BORME]
+          description: "BOE, BOC, BOP_LPA, BOP_TFE, or BORME"
         title:
           type: string
         summary:
@@ -807,6 +808,7 @@ components:
         - id
         - name
         - active
+        - bormeMonitored
         - createdAt
         - updatedAt
       properties:
@@ -814,6 +816,15 @@ components:
           type: integer
         name:
           type: string
+        nif:
+          type: ["string", "null"]
+          description: "NIF (personas físicas) o CIF (personas jurídicas)"
+        nifType:
+          type: string
+          enum: [nif, cif]
+          nullable: true
+        bormeMonitored:
+          type: boolean
         type:
           type: string
           enum: [autonomo, sl, sa, asociacion, comunidad_propietarios, otro]
@@ -847,6 +858,9 @@ components:
       properties:
         name:
           type: string
+        nif:
+          type: string
+          description: "NIF/NIE/CIF español válido — se infiere nif_type automáticamente"
         type:
           type: string
           enum: [autonomo, sl, sa, asociacion, comunidad_propietarios, otro]
@@ -863,12 +877,17 @@ components:
             type: string
         active:
           type: boolean
+        bormeMonitored:
+          type: boolean
 
     UpdateClientBody:
       type: object
       properties:
         name:
           type: string
+        nif:
+          type: string
+          description: "NIF/NIE/CIF español válido — se infiere nif_type automáticamente"
         type:
           type: string
           enum: [autonomo, sl, sa, asociacion, comunidad_propietarios, otro]
@@ -884,6 +903,8 @@ components:
           items:
             type: string
         active:
+          type: boolean
+        bormeMonitored:
           type: boolean
 
     EntryClientMatch:

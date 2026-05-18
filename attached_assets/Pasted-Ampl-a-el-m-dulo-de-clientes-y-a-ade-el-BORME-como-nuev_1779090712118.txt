@@ -1,0 +1,48 @@
+Amplía el módulo de clientes y añade el BORME como nueva fuente de datos:
+
+## 1. Actualiza la tabla `clients` en el esquema
+
+Añade estos campos a la tabla clients existente:
+- nif (text, unique) — NIF para personas físicas (autónomos), CIF para personas jurídicas
+- nif_type (text) — enum: 'nif' | 'cif', inferido automáticamente del formato
+- borme_monitored (boolean, default true) — si se debe vigilar este cliente en el BORME
+
+Ejecuta el push del esquema y actualiza los tipos Zod.
+
+## 2. Añade el BORME como nueva fuente en el sync
+
+Crea `artifacts/api-server/src/lib/borme-fetcher.ts`:
+
+- El BORME tiene API XML oficial en: `https://www.boe.es/diario_borme/xml.php?id=BORME-S-YYYYMMDD`
+- El patrón es idéntico al fetcher del BOE que ya existe — reutiliza la misma lógica
+- Añade 'BORME' como nuevo valor posible en el campo `source` de la tabla `entries`
+- Las entradas del BORME tienen estos campos relevantes: título, sección, tipo de acto (constitución, disolución, concurso, etc.), NIF/CIF mencionados en el texto
+
+Registra el fetcher en el sync diario junto a BOE, BOC, BOP_LPA, BOP_TFE.
+
+## 3. Actualiza el motor de matching para usar NIF
+
+En `artifacts/api-server/src/lib/matching.ts`, añade esta regla de máxima prioridad:
+
+   SCORE 3 FORZADO (crítico):
+   - El NIF o CIF del cliente aparece mencionado explícitamente en el texto 
+     de la entry (BOE, BOC, BOP o BORME)
+   - En este caso el campo `reason` debe ser:
+     "El NIF/CIF de este cliente aparece mencionado directamente en esta disposición."
+   - Este score no puede ser sobreescrito por otras reglas
+
+Esta regla va antes que cualquier otra en la evaluación.
+
+## 4. Actualiza el OpenAPI spec
+
+Añade el campo nif y nif_type al modelo Client.
+Añade BORME como valor posible en el enum source de Entry.
+Regenera los hooks con codegen.
+
+## 5. Actualiza la validación del CRUD de clientes
+
+En el endpoint POST /clients y PATCH /clients/:id:
+- Valida que el NIF/CIF tiene formato español válido 
+  (letra + 7 dígitos + letra/dígito para NIF; letra + 7 dígitos + dígito para CIF)
+- Infiere automáticamente nif_type según el formato detectado
+- El campo nif debe ser único — devuelve error claro si ya existe
