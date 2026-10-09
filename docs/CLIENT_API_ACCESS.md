@@ -1,50 +1,72 @@
-# Client data API — interim protection
+# API access boundary — interim security hardening
 
-This repository is public, but **client data is not public**. The client management endpoints at `/api/clients` and `/api/clients/:id` can return names, NIF values, business data and client-to-publication matches.
+This repository is public, but adviser workflows and personal client information are **not** public. The current API has no staff login or session model, so the security branches use a **temporary server-to-server Bearer token** for sensitive reads and state-changing operations. This is a safety measure, not a production-ready multi-user authorization system.
 
-## What this branch implements
+## Access matrix
 
-- Every route under `/api/clients` requires a server-only bearer token.
-- A missing or weak `BOLETINES_CLIENT_API_TOKEN` **disables client routes** (HTTP 503).
-- A missing or incorrect Authorization header receives HTTP 401.
-- Tokens are compared using SHA-256 digests and `crypto.timingSafeEqual` and are not logged.
-- Client creation logs no longer record the NIF; validation errors do not echo NIF values.
+| Endpoint group | HTTP methods | Interim access |
+| --- | --- | --- |
+| `/api/healthz` | GET | Public |
+| `/api/entries`, `/api/entries/:id` | GET | Public bulletin data |
+| `/api/stats/*` | GET | Public aggregate bulletin statistics |
+| `/api/clients*` | GET, POST, PATCH, DELETE | Protected |
+| `/api/alerts*` | GET, POST, DELETE | Protected |
+| `/api/entries/:id/notes*` | GET, POST, PATCH, DELETE | Protected |
+| `/api/entries/:id/read`, `/api/entries/:id/bookmark` | PATCH | Protected |
+| `/api/sync`, `/api/sync/status` | POST and GET respectively | Protected |
 
-This is **temporary service-to-service authentication**, not a user/session or role-based permission system. Do not call these protected routes directly from browser JavaScript.
+Every protected route uses the same `requireClientApiToken` middleware (despite its historical name). The guard rejects requests **before querying or mutating data**:
 
-## Local/dev configuration
+- Secret unset, shorter than 32 characters or malformed: **503** (fail closed).
+- No Bearer header or incorrect token: **401**.
+- Exact configured token: request may proceed to handler; normal input/database errors still apply.
+- Comparing digests via `crypto.timingSafeEqual`; secret values are never intentionally logged.
+- Client creation and validation no longer echo NIF in logs/error messages.
 
-Create a high-entropy token on a trusted machine (example):
+## Configure for trusted server-side clients only
+
+Generate a high-entropy token on a trusted machine, for example:
 
 ```sh
 openssl rand -hex 32
 ```
 
-Store it in a server-side environment variable named `BOLETINES_CLIENT_API_TOKEN`.
-Do **not** store the real value in source control, a `NEXT_PUBLIC_*` variable, a Vite `VITE_*` variable, the OpenAPI examples or local storage.
+Store it as **server-only** `BOLETINES_CLIENT_API_TOKEN`. Do **not** commit it, put it in `VITE_*` / `NEXT_PUBLIC_*`, inject it into browser code, copy it into an OpenAPI example, or store it in a browser.
 
-Call the API from a trusted **server-side** client over HTTPS:
+Server-side HTTPS request example:
 
 ```sh
 curl -H "Authorization: Bearer YOUR_SERVER_SIDE_TOKEN" https://YOUR_HOST/api/clients
 ```
 
-For local testing, use `http://localhost` and a disposable dataset. Never paste a real token into screenshots or PR comments.
+Use synthetic, disposable records for development. There is **no need for a production token** just to run CI; CI asserts rejection when it is missing.
 
-## Compatibility and remaining security work
+## Important compatibility warning — do not merge blindly
 
-- The React app currently does not expose client administration in its main navigation. If a client UI is added, first introduce a real staff identity provider and secure server-side session/roles. **Never ship the bearer secret to the browser.**
-- This patch intentionally blocks clients endpoints until the backend is configured. It does **not** protect all other routes: alerts, notes, publication read-state updates and manual sync still have unrestricted HTTP access. These require an auth/abuse review before any multi-user deployment.
-- Review `cors()` (currently allows any origin), reverse-proxy access, rate limits, request logging, and where secrets are stored before hosting this service.
-- Use only synthetic data until the entire system is access-controlled and reviewed.
-- **No database schema migration** is required for this interim guard.
+The current React interface has **no staff identity/session system**. After this patch, unauthenticated frontend actions to manage alerts, notes, read/bookmark state or initiate/manual-inspect sync will return **401 or 503**. The client-management feature is not currently present in the primary navigation. Introducing the shared token in browser JavaScript would be insecure and is prohibited.
 
-## Verification
+Before deploying this to a user-facing environment, decide which staff workflows must remain usable, implement real user sessions and server-side authorization, and verify every affected UI flow. This patch should remain a draft until that is done.
+
+## Validation
+
+The CI workflow runs:
 
 ```sh
-pnpm --filter @workspace/api-server run test:security
+node --experimental-strip-types --test artifacts/api-server/src/middlewares/clientApiAccess.test.mjs
 pnpm run typecheck
-pnpm run build
+PORT=20210 BASE_PATH=/ pnpm run build
+cd artifacts/api-server && node --test test/operatorAuthorization.http.test.mjs
 ```
 
-The tests cover middleware decision paths but are not equivalent to a full HTTP/API integration test with database assertions. Security patches should be reviewed and verified before merging.
+The last test launches the **built Express application**, checks HTTP response codes for all protected endpoint patterns with a deliberately nonconnecting PostgreSQL URL, and confirms the public health endpoint still responds. It tests denial **before** database access; it does **not** validate successful authorized database operations, real user sessions, CORS rules or tenant-level isolation.
+
+## Remaining security work
+
+- Replace the single token with authenticated staff sessions and scoped roles. Add account/tenant boundaries if multiple firms or users are supported.
+- Review broad `cors()`, rate limiting and CSRF/session protection when browser auth is introduced.
+- Verify input limits, XML source resiliency and manual sync throttling.
+- Review whether any aggregate public endpoint might inadvertently include private state.
+- Add database-backed integration tests for allowed requests and for staff cross-account denial.
+- Use synthetic data only until end-to-end access control and data handling have been reviewed.
+
+No database changes, hosting settings or public profile changes are made by these security PRs.

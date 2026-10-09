@@ -2,8 +2,12 @@ import { Router, type IRouter } from "express";
 import { eq, and, inArray } from "drizzle-orm";
 import { db, alertsTable, entriesTable } from "@workspace/db";
 import { CreateAlertBody, DeleteAlertParams } from "@workspace/api-zod";
+import { requireClientApiToken } from "../middlewares/clientApiAccess";
 
 const router: IRouter = Router();
+
+// Saved alert preferences and matching results are staff workflow data.
+router.use(requireClientApiToken);
 
 router.get("/alerts", async (_req, res): Promise<void> => {
   const alerts = await db

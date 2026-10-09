@@ -40,3 +40,6 @@ jobs:
           PORT: "20210"
           BASE_PATH: "/"
         run: pnpm run build
+      - name: HTTP authorization smoke tests (real Express bundle, no DB)
+        working-directory: artifacts/api-server
+        run: node --test test/operatorAuthorization.http.test.mjs
