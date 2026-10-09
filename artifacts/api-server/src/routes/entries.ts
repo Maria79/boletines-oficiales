@@ -7,6 +7,7 @@ import {
   MarkEntryReadParams,
   ToggleBookmarkParams,
 } from "@workspace/api-zod";
+import { requireClientApiToken } from "../middlewares/clientApiAccess";
 
 const router: IRouter = Router();
 
@@ -73,7 +74,7 @@ router.get("/entries/:id", async (req, res): Promise<void> => {
   res.json(entry);
 });
 
-router.patch("/entries/:id/read", async (req, res): Promise<void> => {
+router.patch("/entries/:id/read", requireClientApiToken, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = MarkEntryReadParams.safeParse({ id: raw });
   if (!params.success) {
@@ -95,7 +96,7 @@ router.patch("/entries/:id/read", async (req, res): Promise<void> => {
   res.json(entry);
 });
 
-router.patch("/entries/:id/bookmark", async (req, res): Promise<void> => {
+router.patch("/entries/:id/bookmark", requireClientApiToken, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = ToggleBookmarkParams.safeParse({ id: raw });
   if (!params.success) {
