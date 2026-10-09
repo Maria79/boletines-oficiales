@@ -2,8 +2,13 @@ import { Router, type IRouter } from "express";
 import { eq, and, desc, SQL } from "drizzle-orm";
 import { db, clientsTable, entryClientMatchesTable, entriesTable } from "@workspace/db";
 import { CreateClientBody, UpdateClientBody } from "@workspace/api-zod";
+import { requireClientApiToken } from "../middlewares/clientApiAccess";
 
 const router: IRouter = Router();
+
+// All /clients routes are private; allow only server-to-server requests.
+// This runs before any database access (including GET list and detail).
+router.use(requireClientApiToken);
 
 // ── NIF/CIF validation helpers ────────────────────────────────────────────────
 
@@ -118,7 +123,7 @@ router.post("/clients", async (req, res): Promise<void> => {
   if (nif) {
     const result = validateNif(nif);
     if (!result.valid) {
-      res.status(400).json({ error: `NIF/CIF inválido: "${nif}". Formatos aceptados: NIF (12345678A), NIE (X1234567A), CIF (A1234567J)` });
+      res.status(400).json({ error: "NIF/CIF inválido: formato no reconocido" });
       return;
     }
     normalizedNif = result.normalized;
@@ -132,7 +137,7 @@ router.post("/clients", async (req, res): Promise<void> => {
       .limit(1);
 
     if (existing) {
-      res.status(409).json({ error: `Ya existe un cliente con el NIF/CIF ${normalizedNif}` });
+      res.status(409).json({ error: "Ya existe un cliente con este NIF/CIF" });
       return;
     }
   }
@@ -153,7 +158,7 @@ router.post("/clients", async (req, res): Promise<void> => {
     })
     .returning();
 
-  req.log.info({ clientId: client.id, nif: normalizedNif }, "client created");
+  req.log.info({ clientId: client.id }, "client created");
   res.status(201).json(client);
 });
 
@@ -188,7 +193,7 @@ router.patch("/clients/:id", async (req, res): Promise<void> => {
   if (data.nif !== undefined) {
     const result = validateNif(data.nif);
     if (!result.valid) {
-      res.status(400).json({ error: `NIF/CIF inválido: "${data.nif}". Formatos aceptados: NIF (12345678A), NIE (X1234567A), CIF (A1234567J)` });
+      res.status(400).json({ error: "NIF/CIF inválido: formato no reconocido" });
       return;
     }
     // Check uniqueness (excluding current client)
@@ -206,7 +211,7 @@ router.patch("/clients/:id", async (req, res): Promise<void> => {
         .where(eq(clientsTable.nif, result.normalized))
         .limit(1);
       if (conflict) {
-        res.status(409).json({ error: `Ya existe un cliente con el NIF/CIF ${result.normalized}` });
+        res.status(409).json({ error: "Ya existe un cliente con este NIF/CIF" });
         return;
       }
     }
