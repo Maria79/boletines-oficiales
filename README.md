@@ -121,11 +121,11 @@ pnpm run typecheck
 pnpm run build
 ```
 
-These are the configured commands, **not a claim that they have been executed successfully for this review**.
+The TypeScript check and workspace build **passed in CI on the security-work branches**; that verifies those changes but does not constitute a deployment or end-to-end frontend verification. The current `main` branch has no automated test workflow.
 
 ## Current limitations and next improvements
 
-- **Security blocker:** HTTP routes include client-name/NIF access and mutation endpoints with no application authentication middleware. Add authenticated access, scoped permissions and CSRF/CORS policies before connecting real client data or exposing the API.
+- **Security blocker on the published `main` branch:** client-name/NIF routes and other staff-workflow endpoints do not enforce application authentication. Draft [PR #2](https://github.com/Maria79/boletines-oficiales/pull/2) and [PR #3](https://github.com/Maria79/boletines-oficiales/pull/3) add fail-closed API authorization and real HTTP denial checks, but **remain unmerged** because the current browser UI has no compatible staff-login/session flow. Do not put the server-only API token in browser code, connect real client data or host this as an open multi-user service.
 - Add integration tests for ingestion, matching, API validation, authorization and concurrent duplicate prevention; no automated test suite is configured in the root scripts.
 - Verify upstream BOE, BOC, BOP and BORME feed availability, parsing and error recovery under real conditions.
 - Improve scheduling reliability, source-specific monitoring and database uniqueness constraints.
