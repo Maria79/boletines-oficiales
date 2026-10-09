@@ -8,7 +8,9 @@ export type ClientAuthVerdict =
   | "authorized";
 
 /**
- * Temporary service-to-service access control for the client-data API.
+ * Temporary service-to-service access control for private operator API routes.
+ * Covers client records, notes, alert preferences, read/bookmark changes
+ * and synchronization controls.
  *
  * No token is embedded in the frontend; a future user-facing client module
  * must use an actual authenticated session and staff-level authorization.
@@ -53,7 +55,7 @@ export const requireClientApiToken: RequestHandler = (req, res, next): void => {
   }
 
   if (verdict === "unconfigured") {
-    res.status(503).json({ error: "Client API is not configured" });
+    res.status(503).json({ error: "Operator API is not configured" });
     return;
   }
 
