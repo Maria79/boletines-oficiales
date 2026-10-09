@@ -2,8 +2,12 @@ import { Router, type IRouter } from "express";
 import { eq, and, asc } from "drizzle-orm";
 import { db, entryNotesTable, entriesTable } from "@workspace/db";
 import { CreateEntryNoteBody } from "@workspace/api-zod";
+import { requireClientApiToken } from "../middlewares/clientApiAccess";
 
 const router: IRouter = Router();
+
+// Notes may contain internal adviser commentary; keep both reads and writes private.
+router.use(requireClientApiToken);
 
 router.get("/entries/:id/notes", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
