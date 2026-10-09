@@ -27,22 +27,22 @@ The latest source also includes **BORME ingestion and company relevance matching
 
 Small advisory firms need to review many official sources while serving clients with different legal forms, sectors, municipalities and obligations. The engineering problem is not just fetching a feed: it is making updates **findable, reviewable and relevant to the client's situation**.
 
-## Safe portfolio demonstration
+## Live portfolio demonstration (fictional, read-only)
 
-A separate, fully fictional **read-only React demo** is implemented in [PR #4](https://github.com/Maria79/boletines-oficiales/pull/4). It includes an overview dashboard, search/source/category filters, sample bulletin details, synthetic CSV export and an illustrated client-relevance view. It **does not call the Express API**, persist visitor activity or connect to real official bulletin feeds.
+**[Explore the static demo on GitHub Pages](https://maria79.github.io/boletines-oficiales/)**
 
-The [demo branch has passed fixture tests, workspace TypeScript checks and static build verification](https://github.com/Maria79/boletines-oficiales/actions/runs/37991756973). This is a verified static build, **not yet a confirmed live website**.
+The demo is a separate React/TypeScript interface with a dashboard, search/source/category filters, fictional bulletin details, synthetic CSV export and an illustrated client-relevance view. It **does not call the Express API**, persist visitor activity or connect to real official bulletin feeds. All example bulletin titles and organizations are fictional.
 
-After PR #4 has been reviewed and merged, start it locally using:
+The [static GitHub Pages deployment finished successfully](https://github.com/Maria79/boletines-oficiales/actions/runs/37999493795) on 9 October 2026; its publish job reported the URL above. An independent visual browser check and screenshots remain recommended. The [static-demo implementation](https://github.com/Maria79/boletines-oficiales/pull/4) is merged into `main`.
+
+Run the demo locally without database credentials or a backend:
 
 ```bash
 pnpm install --frozen-lockfile
 PORT=20210 BASE_PATH=/ VITE_PORTFOLIO_DEMO=true pnpm --filter @workspace/gestoria-canarias run dev
 ```
 
-The build can be deployed to GitHub Pages as **static frontend assets only**, once repository Pages settings are enabled and its deployment verified. Until those steps finish, do not advertise a public demo URL.
-
-See the [read-only demo runbook](docs/READ_ONLY_PORTFOLIO_DEMO.md) (available after PR #4 merges). Its illustrative match scores **are not the backend matching algorithm**, and none of its bulletin titles represent real legal notices.
+See the [read-only demo runbook](docs/READ_ONLY_PORTFOLIO_DEMO.md). The illustrative match scores **are not the backend matching algorithm**, and no demo entry represents an actual legal notice. The full-stack operational API remains **separate from this static demo** and should not be publicly deployed with real client records.
 
 ## Architecture
 
@@ -146,7 +146,7 @@ The TypeScript check and workspace build **passed in CI on the security-work bra
 - Add integration tests for ingestion, matching, API validation, authorization and concurrent duplicate prevention; no automated test suite is configured in the root scripts.
 - Verify upstream BOE, BOC, BOP and BORME feed availability, parsing and error recovery under real conditions.
 - Improve scheduling reliability, source-specific monitoring and database uniqueness constraints.
-- Publish genuine product screenshots and a reproducible demo only after the environment is safe to expose.
+- Capture genuine browser screenshots of the deployed static demo and verify mobile navigation and accessibility; the fictional demo has deployed, but the operational backend is not an approved public service.
 - Validate NIF/NIE checksums and operational rules before using matching decisions in a professional setting.
 
 **Portfolio note:** this repository showcases how I approach a concrete business problem and its full-stack architecture. It is **not** an official BOE, BOC, BOP or BORME service and should not be used as legal advice.
