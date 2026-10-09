@@ -22,7 +22,7 @@ const bundle = jsFiles.map(path => readFileSync(path, "utf8")).join("\n");
 assert.match(bundle, /DEMOSTRACI[ÓO]N FICTICIA/, "The built app is not the read-only portfolio demo");
 assert.match(bundle, /Publicaciones de muestra/, "The sample dashboard was not bundled");
 assert.match(bundle, /Exportar CSV ficticio/, "The sample data explorer was not bundled");
-assert.match(bundle, /Sin credenciales ni peticiones al servidor/, "The read-only disclosure was not bundled");
+assert.match(bundle, /Sin API de negocio ni datos privados/, "The read-only disclosure was not bundled");
 
 const source = readFileSync(resolve(import.meta.dirname, "../src/demo/PortfolioDemo.tsx"), "utf8");
 assert.doesNotMatch(source, /\bfetch\s*\(|\baxios\b|XMLHttpRequest|WebSocket|localStorage|sessionStorage/, "Demo source must not fetch or persist visitor data");
