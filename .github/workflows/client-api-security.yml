@@ -35,4 +35,8 @@ jobs:
       - name: Workspace typecheck
         run: pnpm run typecheck
       - name: Workspace build
+        env:
+          # Required by both Vite apps' existing config files; not secrets.
+          PORT: "20210"
+          BASE_PATH: "/"
         run: pnpm run build
