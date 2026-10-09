@@ -27,6 +27,23 @@ The latest source also includes **BORME ingestion and company relevance matching
 
 Small advisory firms need to review many official sources while serving clients with different legal forms, sectors, municipalities and obligations. The engineering problem is not just fetching a feed: it is making updates **findable, reviewable and relevant to the client's situation**.
 
+## Safe portfolio demonstration
+
+A separate, fully fictional **read-only React demo** is implemented in [PR #4](https://github.com/Maria79/boletines-oficiales/pull/4). It includes an overview dashboard, search/source/category filters, sample bulletin details, synthetic CSV export and an illustrated client-relevance view. It **does not call the Express API**, persist visitor activity or connect to real official bulletin feeds.
+
+The [demo branch has passed fixture tests, workspace TypeScript checks and static build verification](https://github.com/Maria79/boletines-oficiales/actions/runs/37991756973). This is a verified static build, **not yet a confirmed live website**.
+
+After PR #4 has been reviewed and merged, start it locally using:
+
+```bash
+pnpm install --frozen-lockfile
+PORT=20210 BASE_PATH=/ VITE_PORTFOLIO_DEMO=true pnpm --filter @workspace/gestoria-canarias run dev
+```
+
+The build can be deployed to GitHub Pages as **static frontend assets only**, once repository Pages settings are enabled and its deployment verified. Until those steps finish, do not advertise a public demo URL.
+
+See the [read-only demo runbook](docs/READ_ONLY_PORTFOLIO_DEMO.md) (available after PR #4 merges). Its illustrative match scores **are not the backend matching algorithm**, and none of its bulletin titles represent real legal notices.
+
 ## Architecture
 
 ```mermaid
