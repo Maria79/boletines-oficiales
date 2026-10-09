@@ -9,6 +9,7 @@ import BoletinDetail from "@/pages/boletines/[id]";
 import SyncPage from "@/pages/sync";
 import AlertasPage from "@/pages/alertas";
 import NotFound from "@/pages/not-found";
+import PortfolioDemo from "@/demo/PortfolioDemo";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +36,10 @@ function Router() {
 }
 
 function App() {
+  // The public portfolio demo is an entirely client-side, read-only app.
+  // It does not mount API hooks or authenticated operational screens.
+  if (import.meta.env.VITE_PORTFOLIO_DEMO === "true") return <PortfolioDemo />;
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
