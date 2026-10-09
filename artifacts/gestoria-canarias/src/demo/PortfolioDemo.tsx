@@ -198,7 +198,7 @@ export default function PortfolioDemo() {
           </div>
           <a href="https://github.com/Maria79/boletines-oficiales" rel="noreferrer" target="_blank" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-blue-700 hover:underline">Ver código del proyecto <ArrowRight className="h-4 w-4" /></a>
         </section>}
-        <footer className="mt-12 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-5 text-xs text-slate-500"><span>Gestoría Canarias · Demo técnica de portfolio</span><span className="inline-flex items-center gap-1"><Check className="h-3.5 w-3.5 text-emerald-700" /> Sin credenciales ni peticiones al servidor</span></footer>
+        <footer className="mt-12 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-5 text-xs text-slate-500"><span>Gestoría Canarias · Demo técnica de portfolio</span><span className="inline-flex items-center gap-1"><Check className="h-3.5 w-3.5 text-emerald-700" /> Sin API de negocio ni datos privados</span></footer>
       </main>
     </div>
   </div>;
