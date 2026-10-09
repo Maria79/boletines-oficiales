@@ -24,6 +24,21 @@ Static output: `artifacts/gestoria-canarias/dist/public`. Host this folder only 
 
 **Do not forget `VITE_PORTFOLIO_DEMO=true`.** The normal frontend mode is the original application with API calls, and is **not** safe to expose with real client data.
 
+## Optional public demo on GitHub Pages
+
+An additional workflow at `.github/workflows/deploy-portfolio-pages.yml` builds **only** the frontend in read-only demo mode and uploads the resulting static folder to GitHub Pages. It does not build, deploy or connect the Express API or PostgreSQL.
+
+To enable publication **after the demo PR has been reviewed and merged**:
+
+1. In repository **Settings → Pages**, set the source to **GitHub Actions**.
+2. Merge the reviewed demo PR into `main`; the deployment workflow runs on relevant `main` changes. You can also trigger it under **Actions → Publish safe static portfolio demo → Run workflow**.
+3. Check the completed deployment result in Actions and verify the site manually in both desktop and mobile browsers.
+4. When confirmed, the expected project Pages URL is `https://maria79.github.io/boletines-oficiales/` (only cite it publicly **after** confirming the actual deployment URL).
+
+The workflow sets `VITE_PORTFOLIO_DEMO=true` and `BASE_PATH=/boletines-oficiales/`. A verification step refuses to upload a build without the expected fictional-demo markers or the correct Pages asset prefix.
+
+**Do not use Pages to run the operational Express backend or move server credentials into public Vite variables.**
+
 ## Walkthrough
 
 1. **Panel general:** project-level dashboard, source coverage and latest sample bulletins.
