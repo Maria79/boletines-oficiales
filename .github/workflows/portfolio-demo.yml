@@ -38,6 +38,13 @@ jobs:
         run: pnpm --filter @workspace/gestoria-canarias run build
       - name: Verify built output contains demo and no sensitive fixtures
         run: node artifacts/gestoria-canarias/scripts/verify-demo-build.mjs
+      - name: Check GitHub Pages project-path deployment build
+        env:
+          BASE_PATH: "/boletines-oficiales/"
+        run: |
+          pnpm --filter @workspace/gestoria-canarias run build
+          node artifacts/gestoria-canarias/scripts/verify-demo-build.mjs
+          grep -q "/boletines-oficiales/assets/" artifacts/gestoria-canarias/dist/public/index.html
       - name: Upload static demo for manual preview
         uses: actions/upload-artifact@v4
         with:
