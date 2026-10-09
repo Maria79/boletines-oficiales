@@ -1,0 +1,42 @@
+name: Client API security checks
+
+on:
+  push:
+    branches:
+      - "security/**"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  client-api-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Guard unit tests
+        working-directory: artifacts/api-server
+        run: node --experimental-strip-types --test src/middlewares/clientApiAccess.test.mjs
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Workspace typecheck
+        run: pnpm run typecheck
+      - name: Workspace build
+        env:
+          # Required by both Vite apps' existing config files; not secrets.
+          PORT: "20210"
+          BASE_PATH: "/"
+        run: pnpm run build
